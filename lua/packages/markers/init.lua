@@ -1,134 +1,50 @@
-import( gpm.LuaPackageExists( "packages/http-content" ) and "packages/http-content" or "https://raw.githubusercontent.com/Pika-Software/http-content/master/package.json" )
+local player_GetHumans = player.GetHumans
+local hook_Call = hook.Call
+local CurTime = CurTime
+local ipairs = ipairs
+local net = net
 
 local packageName = gpm.Package:GetIdentifier()
-local logger = gpm.Logger
+util.AddNetworkString( packageName )
 
-local maxDistance = CreateConVar( "markers_max_distance", 1024, bit.bor( FCVAR_ARCHIVE, FCVAR_REPLICATED ), "", 0, 10000 )
+local delay = 1 / CreateConVar( "mp_markers_per_second", "10", FCVAR_ARCHIVE, "", 1, 1000 ):GetInt()
+cvars.AddChangeCallback( "mp_markers_per_second", function( _, __, value )
+    delay = 1 / ( tonumber( value ) or 1 )
+end, packageName )
 
-if SERVER then
+module( "markers", package.seeall )
 
-    util.AddNetworkString( packageName )
-
-    concommand.Add( "marker", function( sender )
-        if not sender:Alive() then return end
-
-        local tr = sender:GetEyeTrace()
-        if not tr.Hit or tr.HitSky then return end
-
-        local result = {
-            ["entity"] = tr.Entity,
-            ["pos"] = tr.HitPos,
-            ["sender"] = sender,
-            ["lifeTime"] = 5
-        }
-
-        local players = {}
-        for _, ply in ipairs( player.GetHumans() ) do
-            if hook.Call( "PlayerCanSeePlayersMarker", nil, sender, ply ) == false then continue end
-            players[ #players + 1 ] = ply
-        end
-
-        net.Start( packageName )
-            net.WriteTable( result )
-        net.Send( players )
-    end )
-
-end
-
-if CLIENT then
-
-    local icons = {
-
-        ["default"] = Material( "icon16/zoom.png", "smooth mips alphatest" )
-
+function Create( creator, pos, entity, tr )
+    local result = {
+        ["Creator"] = creator,
+        ["Entity"] = entity,
+        ["Origin"] = pos,
+        ["LifeTime"] = 5
     }
 
-    local webIcons = {
-        ["way"] = "https://i.imgur.com/DcdKnfz.png",
-        ["stay"] = "https://i.imgur.com/FjxV0Gw.png",
-        ["walk"] = "https://i.imgur.com/7QkKB1a.png",
-        ["run"] = "https://i.imgur.com/mwyO9cV.png",
-        ["dance"] = "https://i.imgur.com/IYnPHTN.png",
-        ["weapon"] = "https://i.imgur.com/mO7YCCp.png",
-        ["ammo"] = "https://i.imgur.com/ib8f2qC.png",
-        ["door"] = "https://i.imgur.com/3Mv7z4s.png",
-        ["blocks"] = "https://i.imgur.com/HvLKZuZ.png",
-        ["dead"] = "https://i.imgur.com/zOstlM7.png"
-    }
-
-    for name, url in pairs( webIcons ) do
-        http.DownloadMaterial( url, "smooth mips" ):Then( function( material )
-            icons[ name ] = material
-        end, function( err )
-            logger:Error( err )
-        end )
+    local players = {}
+    for _, ply in ipairs( player_GetHumans() ) do
+        if hook_Call( "PlayerCanSeePlayerMarker", nil, creator, ply ) == false then continue end
+        players[ #players + 1 ] = ply
     end
 
-    local colors = {
-        Color(30, 144, 255),
-        Color(190, 190, 190),
-        Color(12, 12, 12),
-        Color(255, 115, 50),
-        Color(32, 32, 32)
-    }
+    if hook_Call( "MarkerCreated", nil, result, players, tr ) then return end
 
-    local markers = {}
-    net.Receive( packageName, function(len)
-        local data = net.ReadTable()
-        if not data then return end
-
-        data.icon = icons.way or icons.default
-        data.startTime = CurTime()
-
-        markers[ #markers + 1 ] = data
-    end )
-
-    local sW = ScrW()
-    local function ScaleMarkers()
-
-        local ply_pos = LocalPlayer():GetPos()
-
-        if next(markers) == nil then return end
-        for k, tbl in ipairs( markers ) do
-            if tbl == nil then continue end
-            local dist = tbl.pos:Distance(ply_pos)
-            local scale = dist / sW * 40
-
-            tbl.scale = scale
-        end
-
-    end
-
-    hook.Add( "Think", packageName, function()
-        if next(markers) == nil then return end
-
-        for index, marker in ipairs( markers ) do
-            if CurTime() - marker.startTime > marker.lifeTime then
-                table.remove( markers, index )
-                break
-            end
-
-            local ent = marker.entity
-            if not IsValid( ent ) then return end
-            marker.pos = ent:LocalToWorld(ent:OBBCenter())
-        end
-    end )
-
-    hook.Add( "HUDPaint", packageName, function()
-
-        if next(markers) == nil then return end
-        for k, tbl in ipairs( markers ) do
-            ScaleMarkers()
-
-            cam.Start({})
-                render.SetMaterial( tbl.icon )
-                render.DrawSprite( tbl.pos, tbl.scale, tbl.scale, color_white)
-            cam.End3D()
-        end
-
-    end )
-
-    print(packageName .. "is up!")
+    net.Start( packageName )
+        net.WriteTable( result )
+    net.Send( players )
 end
 
+local delays = {}
+concommand.Add( "marker", function( ply )
+    if not ply:Alive() then return end
 
+    local time = CurTime()
+    if ( delays[ ply:SteamID() ] or 0 ) > time then return end
+    delays[ ply:SteamID() ] = time + delay
+
+    local tr = ply:GetEyeTrace()
+    if not tr.Hit or tr.HitSky then return end
+
+    Create( ply, tr.HitPos, tr.Entity, tr )
+end )

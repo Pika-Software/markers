@@ -1,5 +1,8 @@
 name = "markers"
-main = "init.lua"
-version = 000100
+version = 010000
+
 autorun = true
 logger = true
+
+cl_main = "cl_init.lua"
+main = "init.lua"
