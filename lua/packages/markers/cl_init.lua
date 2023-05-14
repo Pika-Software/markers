@@ -16,7 +16,7 @@ local CurTime = CurTime
 local IsValid = IsValid
 local type = type
 
-local maxDistance = CreateConVar( "mp_markers_max_distance", "1024", FCVAR_ARCHIVE, "", 256, 12 * 1024 )
+local maxDistance = CreateConVar( "mp_markers_max_distance", "4096", FCVAR_ARCHIVE, "", 256, 12 * 1024 )
 local size = CreateConVar( "mp_markers_size", "32", FCVAR_ARCHIVE, "", 16, 512 )
 
 module( "markers", package.seeall )
