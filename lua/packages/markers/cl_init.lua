@@ -97,11 +97,14 @@ end
 
 function meta:Draw()
     if self.__hidden then return end
+    if not hook.Call( "PreMarkerDraw", nil, self ) then
+        cam.IgnoreZ( true )
+            render.SetMaterial( self:GetMaterial() )
+            render.DrawSprite( self.Origin, self.Scale, self.Scale, self.Color )
+        cam.IgnoreZ( false )
+    end
 
-    cam.IgnoreZ( true )
-        render.SetMaterial( self:GetMaterial() )
-        render.DrawSprite( self.Origin, self.Scale, self.Scale, self.Color )
-    cam.IgnoreZ( false )
+    hook.Call( "PostMarkerDraw", nil, self )
 end
 
 -- Creating a new one
