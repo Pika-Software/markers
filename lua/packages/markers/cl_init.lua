@@ -9,17 +9,23 @@ local net = net
 
 local packageName = gpm.Package:GetIdentifier()
 local setmetatable = setmetatable
+local LocalPlayer = LocalPlayer
 local color_white = color_white
 local ArgAssert = ArgAssert
 local Material = Material
 local CurTime = CurTime
 local IsValid = IsValid
+local EyePos = EyePos
+local ScrW = ScrW
 local type = type
+
+local IN_ATTACK = IN_ATTACK
+local IN_WALK = IN_WALK
 
 local maxDistance = CreateConVar( "mp_markers_max_distance", "4096", FCVAR_ARCHIVE, "", 256, 12 * 1024 )
 local size = CreateConVar( "mp_markers_size", "32", FCVAR_ARCHIVE, "", 16, 512 )
 
-module( "markers", package.seeall )
+module( "markers" )
 
 -- Markers metatable
 local meta = {}
@@ -38,6 +44,7 @@ end
 
 function meta:SetMaterial( materialPath )
     ArgAssert( materialPath, 1, "string" )
+
     if string.IsURL( materialPath ) then
         http.DownloadImage( materialPath ):Then( function( filePath )
             materials[ filePath ] = Material( filePath, "smooth mips" )

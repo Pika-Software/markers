@@ -1,5 +1,6 @@
 local player_GetHumans = player.GetHumans
-local hook_Call = hook.Call
+local concommand_Add = concommand.Add
+local hook_Run = hook.Run
 local CurTime = CurTime
 local ipairs = ipairs
 local net = net
@@ -12,7 +13,7 @@ cvars.AddChangeCallback( "mp_markers_per_second", function( _, __, value )
     delay = 1 / ( tonumber( value ) or 1 )
 end, packageName )
 
-module( "markers", package.seeall )
+module( "markers" )
 
 function Create( creator, pos, entity, tr )
     local result = {
@@ -24,11 +25,11 @@ function Create( creator, pos, entity, tr )
 
     local players = {}
     for _, ply in ipairs( player_GetHumans() ) do
-        if hook_Call( "PlayerCanSeePlayerMarker", nil, creator, ply ) == false then continue end
+        if hook_Run( "PlayerCanSeePlayerMarker", nil, creator, ply ) == false then continue end
         players[ #players + 1 ] = ply
     end
 
-    if hook_Call( "MarkerCreated", nil, result, players, tr ) then return end
+    if hook_Run( "MarkerCreated", nil, result, players, tr ) then return end
 
     net.Start( packageName )
         net.WriteTable( result )
@@ -36,7 +37,8 @@ function Create( creator, pos, entity, tr )
 end
 
 local delays = {}
-concommand.Add( "marker", function( ply )
+
+concommand_Add( "marker", function( ply )
     if not ply:Alive() then return end
 
     local time = CurTime()
