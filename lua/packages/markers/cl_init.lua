@@ -99,19 +99,19 @@ function meta:Think()
     end
 
     self.Scale = dist / ScrW() * size:GetInt()
-    self.__hidden = hook.Call( "CanSeePlayerMarker", nil, self ) == false
+    self.__hidden = hook.Run( "CanSeePlayerMarker", nil, self ) == false
 end
 
 function meta:Draw()
     if self.__hidden then return end
-    if not hook.Call( "PreMarkerDraw", nil, self ) then
+    if not hook.Run( "PreMarkerDraw", nil, self ) then
         cam.IgnoreZ( true )
             render.SetMaterial( self:GetMaterial() )
             render.DrawSprite( self.Origin, self.Scale, self.Scale, self.Color )
         cam.IgnoreZ( false )
     end
 
-    hook.Call( "PostMarkerDraw", nil, self )
+    hook.Run( "PostMarkerDraw", nil, self )
 end
 
 -- Creating a new one

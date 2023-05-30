@@ -8,7 +8,7 @@ local net = net
 local packageName = gpm.Package:GetIdentifier()
 util.AddNetworkString( packageName )
 
-local delay = 1 / CreateConVar( "mp_markers_per_second", "10", FCVAR_ARCHIVE, "", 1, 1000 ):GetInt()
+local delay = 1 / CreateConVar( "mp_markers_per_second", "10", FCVAR_ARCHIVE, "", 1, 100 ):GetFloat()
 cvars.AddChangeCallback( "mp_markers_per_second", function( _, __, value )
     delay = 1 / ( tonumber( value ) or 1 )
 end, packageName )

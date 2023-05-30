@@ -1,5 +1,5 @@
 name = "markers"
-version = 010000
+version = 010100
 
 autorun = true
 logger = true
