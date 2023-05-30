@@ -143,10 +143,20 @@ net.Receive( packageName, function()
     Create( data )
 end )
 
-hook.Add( "PlayerBindPress", packageName, function( ply, bind )
-    if bind ~= "+attack" then return end
-    if not input.IsButtonDown( KEY_LALT ) then return end
-    if not ply:Alive() then return end
-    RunConsoleCommand( "marker" )
-    return true
+local lastClick = 0
+
+hook.Add( "CreateMove", packageName, function( cmd )
+    if cmd:KeyDown( IN_WALK ) and cmd:KeyDown( IN_ATTACK ) then
+        cmd:RemoveKey( IN_ATTACK )
+
+        local time = CurTime()
+        local isBlocked = time - lastClick < 0.025
+        lastClick = time
+
+        local ply = LocalPlayer()
+        if not ply:Alive() then return end
+        if isBlocked then return end
+
+        ply:ConCommand( "marker" )
+    end
 end )
