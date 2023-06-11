@@ -7,7 +7,7 @@ local http = http
 local cam = cam
 local net = net
 
-local packageName = gpm.Package:GetIdentifier()
+local messageName = gpm.Package:GetIdentifier( "Networking" )
 local setmetatable = setmetatable
 local LocalPlayer = LocalPlayer
 local color_white = color_white
@@ -137,7 +137,7 @@ function Create( data )
 end
 
 -- Getting info from server
-net.Receive( packageName, function()
+net.Receive( messageName, function()
     local data = net.ReadTable()
     if not data then return end
     Create( data )
@@ -145,7 +145,7 @@ end )
 
 local lastClick = 0
 
-hook.Add( "CreateMove", packageName, function( cmd )
+hook.Add( "CreateMove", "Creating", function( cmd )
     if cmd:KeyDown( IN_WALK ) and cmd:KeyDown( IN_ATTACK ) then
         cmd:RemoveKey( IN_ATTACK )
 
