@@ -2,6 +2,7 @@ install( "packages/http-content", "https://github.com/Pika-Software/http-content
 
 local render = render
 local string = string
+local table = table
 local hook = hook
 local http = http
 local cam = cam
