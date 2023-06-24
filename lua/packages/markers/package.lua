@@ -1,5 +1,5 @@
 name = "markers"
-version = 010101
+version = 010200
 autorun = true
 init = {
     ["client"] = "cl_init.lua",

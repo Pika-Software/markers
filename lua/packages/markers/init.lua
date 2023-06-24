@@ -42,8 +42,8 @@ concommand_Add( "marker", function( ply )
     if not ply:Alive() then return end
 
     local time = CurTime()
-    if ( delays[ ply:SteamID() ] or 0 ) > time then return end
-    delays[ ply:SteamID() ] = time + delay
+    if ( delays[ ply:SteamID64() ] or 0 ) > time then return end
+    delays[ ply:SteamID64() ] = time + delay
 
     local tr = ply:GetEyeTrace()
     if not tr.Hit or tr.HitSky then return end
