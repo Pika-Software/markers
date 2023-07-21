@@ -1,3 +1,5 @@
+install( "packages/glua-extensions", "https://github.com/Pika-Software/glua-extensions" )
+
 local player_GetHumans = player.GetHumans
 local concommand_Add = concommand.Add
 local hook_Run = hook.Run
@@ -32,7 +34,7 @@ function Create( creator, pos, entity, tr )
     if hook_Run( "MarkerCreated", nil, result, players, tr ) then return end
 
     net.Start( messageName )
-        net.WriteTable( result )
+        net.WriteCompressedType( result )
     net.Send( players )
 end
 

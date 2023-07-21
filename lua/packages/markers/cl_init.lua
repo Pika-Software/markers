@@ -1,3 +1,4 @@
+install( "packages/glua-extensions", "https://github.com/Pika-Software/glua-extensions" )
 install( "packages/http-content", "https://github.com/Pika-Software/http-content" )
 
 local render = render
@@ -139,7 +140,7 @@ end
 
 -- Getting info from server
 net.Receive( messageName, function()
-    local data = net.ReadTable()
+    local data = net.ReadCompressedType()
     if not data then return end
     Create( data )
 end )
