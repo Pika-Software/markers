@@ -1,5 +1,5 @@
-name = "markers"
-version = "1.3.0"
+name = "markers-base"
+version = "1.4.0"
 autorun = true
 init = {
     ["client"] = "cl_init.lua",

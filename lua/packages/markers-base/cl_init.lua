@@ -11,7 +11,6 @@ local net = net
 
 local messageName = gpm.Package:GetIdentifier( "Networking" )
 local setmetatable = setmetatable
-local LocalPlayer = LocalPlayer
 local color_white = color_white
 local ArgAssert = ArgAssert
 local Material = Material
@@ -21,13 +20,12 @@ local EyePos = EyePos
 local ScrW = ScrW
 local type = type
 
-local IN_ATTACK = IN_ATTACK
-local IN_WALK = IN_WALK
-
 local maxDistance = CreateConVar( "mp_markers_max_distance", "4096", FCVAR_ARCHIVE, "", 256, 12 * 1024 )
 local size = CreateConVar( "mp_markers_size", "32", FCVAR_ARCHIVE, "", 16, 512 )
 
-module( "markers" )
+if type( markers ) ~= "table" then
+    markers = {}
+end
 
 -- Markers metatable
 local meta = {}
@@ -89,9 +87,18 @@ function meta:Think()
         return
     end
 
-    local ent = self.Entity
-    if IsValid( ent ) then
-        self.Origin = ent:LocalToWorld( ent:OBBCenter() )
+    local entity = self.Entity
+    if IsValid( entity ) then
+        if self.LocalOrigin and self.LocalAngles then
+            local angles = entity:GetAngles()
+            if entity:IsPlayer() then
+                angles[ 2 ] = entity:EyeAngles()[ 2 ]
+            end
+
+            self.Origin = LocalToWorld( self.LocalOrigin, self.LocalAngles, entity:GetPos(), angles )
+        else
+            self.Origin = entity:LocalToWorld( entity:OBBCenter() )
+        end
     end
 
     local dist = self.Origin:Distance( EyePos() )
@@ -117,7 +124,7 @@ function meta:Draw()
 end
 
 -- Creating a new one
-function Create( data )
+function markers.Create( data )
     ArgAssert( data, 1, "table" )
 
     local marker = setmetatable( table.Merge( {
@@ -142,23 +149,7 @@ end
 net.Receive( messageName, function()
     local data = net.ReadCompressedType()
     if not data then return end
-    Create( data )
+    markers.Create( data )
 end )
 
-local lastClick = 0
-
-hook.Add( "CreateMove", "Creating", function( cmd )
-    if cmd:KeyDown( IN_WALK ) and cmd:KeyDown( IN_ATTACK ) then
-        cmd:RemoveKey( IN_ATTACK )
-
-        local time = CurTime()
-        local isBlocked = time - lastClick < 0.025
-        lastClick = time
-
-        local ply = LocalPlayer()
-        if not ply:Alive() then return end
-        if isBlocked then return end
-
-        ply:ConCommand( "marker" )
-    end
-end )
+return markers
