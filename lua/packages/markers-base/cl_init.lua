@@ -1,5 +1,5 @@
+install( "packages/http-extensions.lua", "https://raw.githubusercontent.com/Pika-Software/http-extensions/main/lua/packages/http-extensions.lua" )
 install( "packages/glua-extensions", "https://github.com/Pika-Software/glua-extensions" )
-install( "packages/http-content", "https://github.com/Pika-Software/http-content" )
 
 local render = render
 local string = string
